@@ -1,20 +1,16 @@
-﻿using Microsoft.DotNet.Interactive.Formatting.TabularData;
-using UniversalConverter;
-namespace UniversalConverterTests;
+﻿using ATK.Collection.Converter;
+using Microsoft.DotNet.Interactive.Formatting.TabularData;
+
+namespace ATK.Collection.Converter.Tests;
 public class TabularDataResourceToDataFrameTest
 {
-    [SetUp]
-    public void Setup()
-    {
-    }
-
-    [Test]
+    [Fact]
     public void Convert_Works()
     {
         var tableSchema = new TableSchema();
         var data = Array.Empty<IEnumerable<KeyValuePair<string, object>>>();
         var tabularData = new TabularDataResource(tableSchema, data);
         var dataFrame = tabularData.Convert().To.DataFrame;
-        Assert.Pass();
+        Assert.NotNull(dataFrame);
     }
 }

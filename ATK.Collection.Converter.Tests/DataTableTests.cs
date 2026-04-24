@@ -1,29 +1,24 @@
-﻿using UniversalConverter;
+﻿using ATK.Collection.Converter;
 
-namespace UniversalConverterTests;
+namespace ATK.Collection.Converter.Tests;
 public class DataTableTests
 {
-    [SetUp]
-    public void Setup()
-    {
-    }
-
-    [Test]
+    [Fact]
     public void SaveAsExcelDocument_Works()
     {
         var list = GetTestList();
         var dataTableFromList = list.Convert().To.DataTable;
         dataTableFromList.Convert().SaveAs("./test.xlsx");
-        Assert.Pass();
+        Assert.True(File.Exists("./test.xlsx"));
     }
 
-    [Test]
+    [Fact]
     public void ConvertToList_Works()
     {
         var list = GetTestList();
         var dataTableFromList = list.Convert().To.DataTable;
         var newList = dataTableFromList.Convert().ToGeneric<TestUser>().List;
-        Assert.Pass();
+        Assert.True(newList.Count == list.Count);
     }
     private static List<TestUser> GetTestList()
     {

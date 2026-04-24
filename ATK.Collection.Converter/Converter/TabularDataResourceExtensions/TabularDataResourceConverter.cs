@@ -1,7 +1,7 @@
 ﻿using Microsoft.Data.Analysis;
 using Microsoft.DotNet.Interactive.Formatting.TabularData;
 
-namespace UniversalConverter.Converter.TabularDataResourceExtensions;
+namespace ATK.Collection.Converter.Converter.TabularDataResourceExtensions;
 
 /// <summary>
 ///   Converter 
@@ -11,8 +11,8 @@ public class TabularDataResourceConverter(TabularDataResource data)
     protected readonly TabularDataResource data = data;
 
     public (DataFrame DataFrame, object Test) To =>
-            (
-                DataFrame: new TabularDataResourceToDataFrameConverter().Convert(this.data),
-                Test: new()
-            );
+    (
+        DataFrame: new TabularDataResourceToDataFrameConverter().Convert(data),
+        Test: new object()
+    );
 }

@@ -1,14 +1,7 @@
-﻿using UniversalConverter;
-
-namespace UniversalConverterTests;
+﻿namespace ATK.Collection.Converter.Tests;
 public class ListToDataTableTests
 {
-    [SetUp]
-    public void Setup()
-    {
-    }
-
-    [Test]
+    [Fact]
     public void ListToDataTableConvert_Works()
     {
         var list = new List<TestUser>
@@ -17,10 +10,10 @@ public class ListToDataTableTests
         };
 
         var dataTableFromList = list.Convert().To.DataTable;
-        Assert.Pass();
+        Assert.True(dataTableFromList.Rows.Count == list.Count);
     }
 
-    [Test]
+    [Fact]
     public void ListToDataFrameConvert_Works()
     {
         var list = new List<TestUser>
@@ -29,7 +22,7 @@ public class ListToDataTableTests
         };
 
         var dataFrameFromList = list.Convert().To.DataFrame;
-        Assert.Pass();
+        Assert.True(dataFrameFromList.Rows.Count == list.Count);
     }
 
     internal class TestUser

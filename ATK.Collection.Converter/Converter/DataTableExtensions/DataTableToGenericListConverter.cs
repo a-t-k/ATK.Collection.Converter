@@ -1,5 +1,7 @@
 ﻿using System.Data;
-namespace UniversalConverter.Converter.DataTableExtensions;
+
+namespace ATK.Collection.Converter.Converter.DataTableExtensions;
+
 public class DataTableToGenericListConverter
 {
     public List<T> Convert<T>(DataTable dataTable)
@@ -12,15 +14,10 @@ public class DataTableToGenericListConverter
         var listType = typeof(T);
         var instance = Activator.CreateInstance<T>();
         foreach (DataColumn column in dataRow.Table.Columns)
-        {
-            foreach (var propertyInfo in listType.GetProperties())
-            {
-                if (string.Equals(propertyInfo.Name, column.ColumnName, StringComparison.CurrentCultureIgnoreCase))
-                {
-                    propertyInfo.SetValue(instance, dataRow[column.ColumnName], null);
-                }
-            }
-        }
+        foreach (var propertyInfo in listType.GetProperties())
+            if (string.Equals(propertyInfo.Name, column.ColumnName, StringComparison.CurrentCultureIgnoreCase))
+                propertyInfo.SetValue(instance, dataRow[column.ColumnName], null);
+
         return instance;
     }
 }

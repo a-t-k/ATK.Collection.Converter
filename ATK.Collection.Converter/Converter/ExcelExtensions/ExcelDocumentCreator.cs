@@ -1,13 +1,14 @@
-﻿using DocumentFormat.OpenXml;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Spreadsheet;
-using System.Data;
+﻿using System.Data;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Color = DocumentFormat.OpenXml.Spreadsheet.Color;
 
-namespace UniversalConverter.Converter.ExcelExtensions;
+namespace ATK.Collection.Converter.Converter.ExcelExtensions;
+
 public class ExcelDocumentCreator
 {
     public bool Save(DataTable dataTable, string fileName)
@@ -22,7 +23,7 @@ public class ExcelDocumentCreator
     public bool Save(DataSet ds, string fileName)
     {
         using var spreadsheet = SpreadsheetDocument.Create(fileName, SpreadsheetDocumentType.Workbook);
-        this.Save(ds, spreadsheet);
+        Save(ds, spreadsheet);
         return true;
     }
 
@@ -39,7 +40,7 @@ public class ExcelDocumentCreator
         foreach (DataTable dt in ds.Tables)
         {
             var newWorksheetPart = workbookPart.AddNewPart<WorksheetPart>();
-            var sheet = new Sheet()
+            var sheet = new Sheet
             {
                 Id = workbookPart.GetIdOfPart(newWorksheetPart),
                 SheetId = worksheetNumber,
@@ -58,7 +59,8 @@ public class ExcelDocumentCreator
     // DataType reference
     // https://learn.microsoft.com/en-us/dotnet/api/system.data.datacolumn.datatype?redirectedfrom=MSDN&view=net-7.0#System_Data_DataColumn_DataType
     private void CreateHeader(DataTable dataTable, OpenXmlWriter writer,
-        (bool[] isIntegerColumn, bool[] isFloatColumn, bool[] isDateColumn, string[] columnNames, int columnsCount) dataInfo)
+        (bool[] isIntegerColumn, bool[] isFloatColumn, bool[] isDateColumn, string[] columnNames, int columnsCount)
+            dataInfo)
     {
         writer.WriteStartElement(new Row { RowIndex = 1, Height = 20, CustomHeight = true });
         for (var index = 0; index < dataInfo.columnsCount; index++)
@@ -94,7 +96,8 @@ public class ExcelDocumentCreator
         writer.WriteEndElement();
     }
 
-    private (bool[] isIntegerColumn, bool[] isFloatColumn, bool[] isDateColumn, string[] columnNames, int columnsCount) GetDataInfo(DataTable dataTable)
+    private (bool[] isIntegerColumn, bool[] isFloatColumn, bool[] isDateColumn, string[] columnNames, int columnsCount)
+        GetDataInfo(DataTable dataTable)
     {
         var columnsCount = dataTable.Columns.Count;
         var isIntegerColumn = new bool[columnsCount];
@@ -117,6 +120,7 @@ public class ExcelDocumentCreator
             writer.WriteElement(new Column { Min = index, Max = index, CustomWidth = true, Width = 20 });
             index++;
         }
+
         writer.WriteEndElement();
 
         writer.WriteStartElement(new SheetData());
@@ -135,7 +139,8 @@ public class ExcelDocumentCreator
                 var cellValue = columIndexValue is null ? string.Empty : RemoveNonAsciiCharacters(columIndexValue);
                 var cellReference = dataInfo.columnNames[columnIndex] + rowIndex.ToString();
 
-                switch (dataInfo.isIntegerColumn[columnIndex], dataInfo.isFloatColumn[columnIndex], dataInfo.isDateColumn[columnIndex])
+                switch (dataInfo.isIntegerColumn[columnIndex], dataInfo.isFloatColumn[columnIndex],
+                    dataInfo.isDateColumn[columnIndex])
                 {
                     case (true, false, false) or (false, true, false):
                         var hasDecimalPlaces = dataInfo.isFloatColumn[columnIndex];
@@ -144,24 +149,23 @@ public class ExcelDocumentCreator
                             cellValue = cellFloatValue.ToString(cultureInfo);
                             AppendNumericCell(cellReference, cellValue, hasDecimalPlaces, writer);
                         }
+
                         continue;
                     case (false, false, true):
                         if (DateTime.TryParse(cellValue, out var dateValue))
-                        {
                             AppendDateCell(cellReference, dateValue, writer);
-                        }
                         else
-                        {
                             AppendTextCell(cellReference, cellValue, writer);
-                        }
                         continue;
                     default:
                         AppendTextCell(cellReference, cellValue, writer);
                         continue;
                 }
             }
+
             writer.WriteEndElement();
         }
+
         //  End of SheetData
         writer.WriteEndElement();
         //  End of worksheet
@@ -230,7 +234,8 @@ public class ExcelDocumentCreator
     // add a new numeric excel cell to a row.
     // style #4: format for 0 decimal places.
     // style #5 format for 2 decimal places.
-    private void AppendNumericCell(string cellReference, string cellStringValue, bool hasDecimalPlaces, OpenXmlWriter writer)
+    private void AppendNumericCell(string cellReference, string cellStringValue, bool hasDecimalPlaces,
+        OpenXmlWriter writer)
     {
         var cellStyle = (uint)(hasDecimalPlaces ? 5 : 4);
         writer.WriteElement(new Cell
@@ -238,16 +243,14 @@ public class ExcelDocumentCreator
             CellValue = new CellValue(cellStringValue),
             CellReference = cellReference,
             StyleIndex = cellStyle,
-            DataType = CellValues.Number,
-
+            DataType = CellValues.Number
         });
     }
 
     //  Remove non ASCII characters.
     private string RemoveNonAsciiCharacters(string text)
     {
-
-        string r = "[\x00-\x08\x0B\x0C\x0E-\x1F]";
+        var r = "[\x00-\x08\x0B\x0C\x0E-\x1F]";
         return Regex.Replace(text, r, "", RegexOptions.Compiled);
     }
 
@@ -295,12 +298,12 @@ public class ExcelDocumentCreator
 
         return new Stylesheet(
             new NumberingFormats(
-                new NumberingFormat()
+                new NumberingFormat
                 {
                     NumberFormatId = UInt32Value.FromUInt32(dateTimeCustomFormat),
                     FormatCode = StringValue.FromString("dd/MMM/yyyy hh:mm:ss")
                 },
-                new NumberingFormat()
+                new NumberingFormat
                 {
                     NumberFormatId = UInt32Value.FromUInt32(dateWithoutTimeCustomFormat),
                     FormatCode = StringValue.FromString("dd/MMM/yyyy")
@@ -309,73 +312,86 @@ public class ExcelDocumentCreator
             new Fonts(
                 // Index 0 - The default font.
                 new Font(
-                    new FontSize() { Val = 10 },
-                    new Color() { Rgb = new HexBinaryValue() { Value = "000000" } },
-                    new FontName() { Val = "Arial" }),
+                    new FontSize { Val = 10 },
+                    new Color { Rgb = new HexBinaryValue { Value = "000000" } },
+                    new FontName { Val = "Arial" }),
                 // Index 1 - A 12px bold font, in white.
                 new Font(
                     new Bold(),
-                    new FontSize() { Val = 12 },
-                    new Color() { Rgb = new HexBinaryValue() { Value = "FFFFFF" } },
-                    new FontName() { Val = "Arial" }),
+                    new FontSize { Val = 12 },
+                    new Color { Rgb = new HexBinaryValue { Value = "FFFFFF" } },
+                    new FontName { Val = "Arial" }),
                 // Index 2 - An Italic font.
                 new Font(
                     new Italic(),
-                    new FontSize() { Val = 10 },
-                    new Color() { Rgb = new HexBinaryValue() { Value = "000000" } },
-                    new FontName() { Val = "Times New Roman" })
+                    new FontSize { Val = 10 },
+                    new Color { Rgb = new HexBinaryValue { Value = "000000" } },
+                    new FontName { Val = "Times New Roman" })
             ),
             new Fills(
                 // Index 0 - The default fill.
                 new Fill(new PatternFill { PatternType = PatternValues.None }),
 
                 // Index 1 - The default fill of gray 125 (required)
-                new Fill(new PatternFill() { PatternType = PatternValues.Gray125 }),
+                new Fill(new PatternFill { PatternType = PatternValues.Gray125 }),
 
                 // Index 2 - The yellow fill.
-                new Fill(new PatternFill(new ForegroundColor() { Rgb = new HexBinaryValue() { Value = "FFFFFF00" } }) { PatternType = PatternValues.Solid }),
+                new Fill(new PatternFill(new ForegroundColor { Rgb = new HexBinaryValue { Value = "FFFFFF00" } })
+                    { PatternType = PatternValues.Solid }),
 
                 // Index 3 - Dark-gray fill.
-                new Fill(new PatternFill(new ForegroundColor() { Rgb = new HexBinaryValue() { Value = "FF404040" } }) { PatternType = PatternValues.Solid })
+                new Fill(new PatternFill(new ForegroundColor { Rgb = new HexBinaryValue { Value = "FF404040" } })
+                    { PatternType = PatternValues.Solid })
             ),
             new Borders(
                 // Index 0 - The default border.
-                new Border(new LeftBorder(), new RightBorder(), new TopBorder(), new BottomBorder(), new DiagonalBorder()),
+                new Border(new LeftBorder(), new RightBorder(), new TopBorder(), new BottomBorder(),
+                    new DiagonalBorder()),
                 // Index 1 - Applies a Left, Right, Top, Bottom border to a cell
                 new Border(
-                    new LeftBorder(new Color() { Auto = true }) { Style = BorderStyleValues.Thin },
-                    new RightBorder(new Color() { Auto = true }) { Style = BorderStyleValues.Thin },
-                    new TopBorder(new Color() { Auto = true }) { Style = BorderStyleValues.Thin },
-                    new BottomBorder(new Color() { Auto = true }) { Style = BorderStyleValues.Thin },
+                    new LeftBorder(new Color { Auto = true }) { Style = BorderStyleValues.Thin },
+                    new RightBorder(new Color { Auto = true }) { Style = BorderStyleValues.Thin },
+                    new TopBorder(new Color { Auto = true }) { Style = BorderStyleValues.Thin },
+                    new BottomBorder(new Color { Auto = true }) { Style = BorderStyleValues.Thin },
                     new DiagonalBorder())
             ),
             new CellFormats(
                 // Style # 0 - The default cell style.  If a cell does not have a style index applied it will use this style combination instead
-                new CellFormat() { FontId = 0, FillId = 0, BorderId = 0 },
+                new CellFormat { FontId = 0, FillId = 0, BorderId = 0 },
                 // Style # 1 - DateTimes
-                new CellFormat() { NumberFormatId = 164 },
+                new CellFormat { NumberFormatId = 164 },
                 // Style # 2 - Dates (with a blank time)
-                new CellFormat() { NumberFormatId = 165 },
+                new CellFormat { NumberFormatId = 165 },
                 // Style # 3 - Header row 
-                new CellFormat(new Alignment { Horizontal = HorizontalAlignmentValues.Center, Vertical = VerticalAlignmentValues.Center })
-                { FontId = 1, FillId = 3, BorderId = 0, ApplyFont = true, ApplyAlignment = true },
+                new CellFormat(new Alignment
+                        { Horizontal = HorizontalAlignmentValues.Center, Vertical = VerticalAlignmentValues.Center })
+                    { FontId = 1, FillId = 3, BorderId = 0, ApplyFont = true, ApplyAlignment = true },
                 // Style # 4 - Number format: #,##0
-                new CellFormat() { NumberFormatId = 3, FormatId = 0, FillId = 0, BorderId = 0, FontId = 0, ApplyNumberFormat = BooleanValue.FromBoolean(true) },
+                new CellFormat
+                {
+                    NumberFormatId = 3, FormatId = 0, FillId = 0, BorderId = 0, FontId = 0,
+                    ApplyNumberFormat = BooleanValue.FromBoolean(true)
+                },
                 // Style # 5 - Number format: #,##0.00
-                new CellFormat() { NumberFormatId = 4, FormatId = 0, FillId = 0, BorderId = 0, FontId = 0, ApplyNumberFormat = BooleanValue.FromBoolean(true) },
+                new CellFormat
+                {
+                    NumberFormatId = 4, FormatId = 0, FillId = 0, BorderId = 0, FontId = 0,
+                    ApplyNumberFormat = BooleanValue.FromBoolean(true)
+                },
                 // Style # 6 - Bold 
-                new CellFormat() { FontId = 1, FillId = 0, BorderId = 0, ApplyFont = true },
+                new CellFormat { FontId = 1, FillId = 0, BorderId = 0, ApplyFont = true },
                 // Style # 7 - Italic
-                new CellFormat() { FontId = 2, FillId = 0, BorderId = 0, ApplyFont = true },
+                new CellFormat { FontId = 2, FillId = 0, BorderId = 0, ApplyFont = true },
                 // Style # 8 - Times Roman
-                new CellFormat() { FontId = 2, FillId = 0, BorderId = 0, ApplyFont = true },
+                new CellFormat { FontId = 2, FillId = 0, BorderId = 0, ApplyFont = true },
                 // Style # 9 - Yellow Fill
-                new CellFormat() { FontId = 0, FillId = 2, BorderId = 0, ApplyFill = true },
+                new CellFormat { FontId = 0, FillId = 2, BorderId = 0, ApplyFill = true },
                 // Style # 10 - Alignment
-                new CellFormat(new Alignment() { Horizontal = HorizontalAlignmentValues.Center, Vertical = VerticalAlignmentValues.Center })
-                { FontId = 0, FillId = 0, BorderId = 0, ApplyAlignment = true },
+                new CellFormat(new Alignment
+                        { Horizontal = HorizontalAlignmentValues.Center, Vertical = VerticalAlignmentValues.Center })
+                    { FontId = 0, FillId = 0, BorderId = 0, ApplyAlignment = true },
                 // Style # 11 - Border
-                new CellFormat() { FontId = 0, FillId = 0, BorderId = 1, ApplyBorder = true }
+                new CellFormat { FontId = 0, FillId = 0, BorderId = 1, ApplyBorder = true }
             )
         );
     }

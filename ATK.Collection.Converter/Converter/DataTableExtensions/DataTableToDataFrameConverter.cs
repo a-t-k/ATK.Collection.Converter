@@ -1,6 +1,8 @@
-﻿using Microsoft.Data.Analysis;
-using System.Data;
-namespace UniversalConverter.Converter.DataTableExtensions;
+﻿using System.Data;
+using Microsoft.Data.Analysis;
+
+namespace ATK.Collection.Converter.Converter.DataTableExtensions;
+
 public class DataTableToDataFrameConverter
 {
     public DataFrame Convert(DataTable dataTable)
@@ -18,6 +20,7 @@ public class DataTableToDataFrameConverter
             DataFrameColumn dataFrameColumn = DataFrameColumn.Create(column.ColumnName, values);
             dataFrame.Columns.Add(dataFrameColumn);
         }
+
         return dataFrame;
     }
 }

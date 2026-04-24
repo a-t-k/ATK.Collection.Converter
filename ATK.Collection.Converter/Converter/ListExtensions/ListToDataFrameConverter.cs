@@ -1,6 +1,7 @@
 ﻿using Microsoft.Data.Analysis;
 
-namespace UniversalConverter.Converter.ListExtensions;
+namespace ATK.Collection.Converter.Converter.ListExtensions;
+
 public class ListToDataFrameConverter
 {
     public DataFrame Convert<T>(List<T> list)
